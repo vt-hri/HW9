@@ -36,7 +36,7 @@ panda = Panda(basePosition=[0, 0, 0],
                 jointStartPositions=jointStartPositions)
 
 # load the trained model
-model = MLPPolicy(state_dim=6, hidden_dim=64, action_dim=3)
+model = MLPPolicy(state_dim=6, hidden_dim=32, action_dim=3)
 model.load_state_dict(torch.load('model_weights'))
 model.eval()
 
@@ -48,12 +48,20 @@ for idx in range(10):
     cabinet_position = np.random.uniform([0.6, -0.3, 0.2], [0.8, +0.3, 0.2])
     p.resetBasePositionAndOrientation(cabinet.object, cabinet_position, p.getQuaternionFromEuler([0, 0, np.pi]))
     p.resetJointState(cabinet.object, 0, 0.1)
+    robot_state = panda.get_state()
+    prev_pos = np.array(robot_state["ee-position"])
+    robot_positions = []
+    robot_positions.append(np.copy(prev_pos))
+    robot_positions.append(np.copy(prev_pos))
 
     # rollout the learned policy
     for idx in range(1000):
         # get the robot's position
         robot_state = panda.get_state()
         robot_pos = np.array(robot_state["ee-position"])
+        if idx % 10 == 0:
+            robot_positions.append(np.copy(robot_pos))
+        robot_pos_history = robot_pos.tolist() + robot_positions[-1].tolist() +  robot_positions[-2].tolist()
 
         # get the state
         state = torch.FloatTensor(robot_pos.tolist() + cabinet_position.tolist())

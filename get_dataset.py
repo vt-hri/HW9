@@ -41,6 +41,7 @@ offset3 = np.array([-0.3, 0.0, 0.05])       # pull the cabinet open
 offset = [offset1, offset2, offset3]
 timesteps = [401, 201, 401]
 dataset = []
+dataset_history = []
 for idx in range(10):
 
     # reset the robot
@@ -50,6 +51,9 @@ for idx in range(10):
     p.resetJointState(cabinet.object, 0, 0.1)
     robot_state = panda.get_state()
     prev_pos = np.array(robot_state["ee-position"])
+    robot_positions = []
+    robot_positions.append(np.copy(prev_pos))
+    robot_positions.append(np.copy(prev_pos))
 
     # perform the expert behavior
     for stage in range(3):
@@ -62,8 +66,12 @@ for idx in range(10):
                 robot_pos = np.array(robot_state["ee-position"])
                 action = robot_pos - prev_pos
                 dataset.append(robot_pos.tolist() + cabinet_position.tolist() + action.tolist())
+                robot_pos_history = robot_pos.tolist() + robot_positions[-1].tolist() +  robot_positions[-2].tolist()
+                dataset_history.append(robot_pos_history + cabinet_position.tolist() + action.tolist())
                 prev_pos = robot_pos
+                robot_positions.append(np.copy(prev_pos))
 
 # save the dataset of demonstrations
 pickle.dump(dataset, open("dataset.pkl", "wb"))
+pickle.dump(dataset_history, open("dataset_history.pkl", "wb"))
 print("dataset has this many state-action pairs:", len(dataset))

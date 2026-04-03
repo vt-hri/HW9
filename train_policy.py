@@ -28,7 +28,7 @@ def train_model(loadname):
     LR = 0.01
 
     # initialize model and optimizer
-    model = MLPPolicy(state_dim=6, hidden_dim=64, action_dim=3)
+    model = MLPPolicy(state_dim=6, hidden_dim=32, action_dim=3)
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
     # initialize dataset
